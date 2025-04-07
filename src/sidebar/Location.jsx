@@ -30,12 +30,12 @@ const Location = ({ handleChange }) => {
         title="Yaounde"
         name="test"
         />
-         <Inputfield
+      <Inputfield
         handleChange={handleChange}
-        value="Douala "
+        value="Douala"
         title="Douala"
         name="test"
-        />
+        /> 
          <Inputfield
         handleChange={handleChange}
         value="Buea"

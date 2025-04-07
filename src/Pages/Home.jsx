@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Banner from "../components/Banner";
 import Card from "../components/Card";
-import Jobs from "../components/jobs";
+import Jobs from "./Jobs";
 import Sidebar from "../sidebar/sidebar";
 import Newsletter from "../components/Newsletter"
 
@@ -10,15 +10,30 @@ const Home = () => {
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [error, setError] = useState(null);
   const itemsPerPage = 6;
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("jobs.json")
-      .then((res) => res.json())
+    setError(null);
+    fetch("http://localhost:3000/all-jobs")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
+        console.log("Fetched jobs:", data);
         setJobs(data);
         setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching jobs:", error);
+        setError("Failed to connect to the server. Please make sure the server is running.");
+        setIsLoading(false);
+        // Set empty array to prevent errors when rendering
+        setJobs([]);
       });
   }, []);
 
@@ -48,7 +63,7 @@ const Home = () => {
    const calculatePageRange = () =>{
        const startindex = (currentPage - 1)*itemsPerPage;
        const endindex = startindex + itemsPerPage;
-       return{startindex, endindex};
+       return {startindex, endindex};
    }
 
    // function for the next page
@@ -68,7 +83,7 @@ const Home = () => {
 
   // Main filtering function
   const filteredData = (jobs, selected, query) => {
-    let filteredJobs = jobs;
+    let filteredJobs = [...jobs];
 
     // Filter by query (job title)
     if (query) {
@@ -103,6 +118,16 @@ const Home = () => {
     <div>
       <Banner query={query} handleInputChange={handleInputChange} />
 
+      {error && (
+        <div className="max-w-screen-2xl container mx-auto xl:px-24 px-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline"> {error}</span>
+            <p className="mt-2">Please make sure your server is running at http://localhost:3000</p>
+          </div>
+        </div>
+      )}
+
       {/* Main content */}
       <div className="bg-[#FAFAFA] md:grid grid-cols-4 gap-8 lg:px-24 px-4 py-12">
         {/* Left side */}
@@ -114,6 +139,8 @@ const Home = () => {
         <div className="col-span-2 bg-white p-4 rounded-sm">
           {isLoading ? (
             <p className="font-medium">Loading....</p>
+          ) : error ? (
+            <p className="font-medium text-red-500">Server connection error. Please start the server.</p>
           ) : result.length > 0 ? (
             <Jobs result={result} />
           ) : (

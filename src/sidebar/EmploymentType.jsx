@@ -1,7 +1,7 @@
 import React from 'react'
 import Inputfield from "../components/inputfield";
 
-const EmploymentType = (handleChange) => {
+const EmploymentType = ({handleChange}) => {
   return (
     <div>
     <h4 className="text-lg font-medium mb-2">Type of employment</h4> 

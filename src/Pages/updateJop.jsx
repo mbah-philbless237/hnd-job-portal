@@ -1,8 +1,21 @@
+import React from 'react'
+import { useLoaderData, useParams, useSearchParams } from 'react-router-dom'
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import CreatableSelect from "react-select/creatable";
 
-const CreateJob = () => {
+const UpdateJob = () => {
+  const params = useParams();
+  const [searchParams] = useSearchParams();
+  const jobId = params.id;
+  const userEmail = searchParams.get('email') || "philblessmbah@gmail.com";
+  
+  console.log("Job ID for update:", jobId);
+  console.log("User email for authorization:", userEmail);
+  
+  const jobData = useLoaderData();
+  console.log("Job data loaded:", jobData);
+
   const [selectedOption, setSelectedOption] = useState(null);
   const {
     register,
@@ -13,28 +26,33 @@ const CreateJob = () => {
 
   const onSubmit = (data) => {
     data.skills = selectedOption;
-    data.postedBy = "philblessmbah@gmail.com";
+    console.log("Updating job with data:", data);
     
-    fetch("http://localhost:3000/post-job", {
-      method: "POST",
+    fetch(`http://localhost:3000/update-job/${jobId}?email=${encodeURIComponent(userEmail)}`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then(data => {
+            throw new Error(data.message || 'Failed to update job');
+          });
+        }
+        return res.json();
+      })
       .then((result) => {
-        console.log(result);
-        if(result.acknowledged === true ){
-          alert("Job Posted Successfully!!!")
-        
-        reset()
+        console.log("Update result:", result);
+        if(result.acknowledged === true) {
+          alert("Job Updated Successfully!!!");
+          reset();
         }
       })
       .catch((error) => {
-        console.error("Error:", error);
-        
-
+        console.error("Error updating job:", error);
+        alert(error.message || "Failed to update job. Please try again.");
       });
   };
 
@@ -48,7 +66,6 @@ const CreateJob = () => {
     { value: "MongoDB", label: "MongoDB" },
     { value: "Redux", label: "Redux" },
   ];
-
   return (
     <div className="max-w-screen-2xl container mx-auto xl:px-24 px-4">
       {/*form*/}
@@ -60,8 +77,8 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg"> Job Title</label>
               <input
                 type="text"
-                defaultValue={"web developer"}
-                {...register("jobTitle")}
+                defaultValue={jobData.jobTitle}
+                {...register("JobTitle")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
               />
             </div>
@@ -70,8 +87,9 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg "> Company Name </label>
               <input
                 type="text"
+                defaultValue={jobData.companyName}
                 placeholder="Ex: Microsoft"
-                {...register("companyName")}
+                {...register("CompanyName")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
               />
             </div>
@@ -83,6 +101,7 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg"> Minimum Salary</label>
               <input
                 type="text"
+                defaultValue={jobData.minPrice}
                 placeholder="500000fcfa"
                 {...register("minPrice")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
@@ -93,6 +112,7 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg"> Maximum Salary </label>
               <input
                 type="text"
+                defaultValue={jobData.maxPrice}
                 placeholder="10000000fcfa"
                 {...register("maxPrice")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
@@ -105,6 +125,7 @@ const CreateJob = () => {
             <div className="lg:w-1/2 w-full">
               <label className="block mb-2 text-lg">Salary Type</label>
               <select
+                defaultValue={jobData.salaryType}
                 {...register("salaryType")}
                 className=" block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
               >
@@ -119,6 +140,7 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg"> Job Location </label>
               <input
                 type="text"
+                defaultValue={jobData.jobLocation}
                 placeholder="Ex: Yaounde"
                 {...register("jobLocation")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
@@ -132,6 +154,7 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg"> Job Posting Date </label>
               <input
                 type="date"
+                defaultValue={jobData.postingDate}
                 placeholder="Ex: 2025-02-22"
                 {...register("postingDate")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
@@ -140,6 +163,7 @@ const CreateJob = () => {
             <div className="lg:w-1/2 w-full">
               <label className="block mb-2 text-lg">Experience Level</label>
               <select
+                defaultValue={jobData.experienceLevel}
                 {...register("experienceLevel")}
                 className=" block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
               >
@@ -170,6 +194,7 @@ const CreateJob = () => {
               <label className="block mb-2 text-lg"> Company Logo </label>
               <input
                 type="url"
+                defaultValue={jobData.companyLogo}
                 placeholder="Paste your company logo url ULR: https://weshare.com/img1/"
                 {...register("companyLogo")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
@@ -178,6 +203,7 @@ const CreateJob = () => {
             <div className="lg:w-1/2 w-full">
               <label className="block mb-2 text-lg">Employment Type</label>
               <select
+                defaultValue={jobData.employmentType}
                 {...register("employmentType")}
                 className=" block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
               >
@@ -194,9 +220,9 @@ const CreateJob = () => {
           <label className="block mb-2 text-lg"> Job Description </label>
           <textarea className="w-full pl-3 py-1.5 focus:outline-none placeholder:text-gray-700"
           rows={6}
-          defaultValue={"Give a detail explanation of your job"}
+          defaultValue={jobData.descriptions}
           placeholder="Job description"
-          {...register("description")}/>
+          {...register("descriptions")}/>
           </div>
 
            {/*8th row */}
@@ -204,8 +230,8 @@ const CreateJob = () => {
            <label className="block mb-2 text-lg"> Job Posted By </label>
            <input
                 type="email"
+                defaultValue={jobData.postedBy}
                 placeholder="your email"
-                defaultValue="philblessmbah@gmail.com"
                 {...register("postedBy")}
                 className="block w-full flex-1 bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm sm:leading-6"
               />
@@ -218,7 +244,8 @@ const CreateJob = () => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CreateJob;
+export default UpdateJob
+
