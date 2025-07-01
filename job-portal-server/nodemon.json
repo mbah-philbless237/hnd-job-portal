@@ -1,0 +1,5 @@
+{
+  "ignore": ["node_modules/*", "*.test.js", "*.json"],
+  "delay": "1000",
+  "verbose": true
+} 
